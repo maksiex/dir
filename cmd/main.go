@@ -6,6 +6,6 @@ import (
 )
 
 func main() {
-	fmt.Println("Initial")
+	fmt.Printf("Initial")
 	log.Info().Msg("✅ Сервис запущен")
 }
