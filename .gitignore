@@ -1,0 +1,13 @@
+/postgres-data
+/.env
+.idea/
+*.exe
+*.out
+*.test
+*.log
+*.swp
+*.tmp
+*.bak
+vendor/
+coverage.out
+node_modules/
