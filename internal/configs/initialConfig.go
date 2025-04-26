@@ -10,6 +10,7 @@ import (
 
 func LoadInitialConfig() {
 	logger.InitLogger()
+
 	envPath, _ := filepath.Abs(".env")
 	err := godotenv.Load(envPath)
 	if err != nil {
