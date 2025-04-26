@@ -1,11 +1,9 @@
 package main
 
 import (
-	"fmt"
-	"github.com/rs/zerolog/log"
+	"github.com/maksiex/dir/internal/configs"
 )
 
 func main() {
-	fmt.Println("test")
-	log.Info().Msg("✅ Сервис запущен")
+	configs.LoadInitialConfig()
 }
