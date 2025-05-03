@@ -1,13 +1,50 @@
-/postgres-data
-/.env
+# ----------------------------------
+# Go build artifacts
+# ----------------------------------
+/bin/
+/build/
+/dist/
+/*.exe
+/*.out
+/*.test
+
+# Go module files (optional if generated)
+/vendor/
+
+# Dependency directories (if you use dep or other vendoring tools)
+/Godeps/
+
+# IDE/editor files
 .idea/
-*.exe
-*.out
-*.test
-*.log
+.vscode/
 *.swp
+
+# Logs
+*.log
+*.log.*
+
+# Docker
+*.tar
+docker-compose.override.yml
+
+# OS / misc
+.DS_Store
+Thumbs.db
+
+# Env files — локальные и секретные
+.env
+.env.local
+.env.production
+.env.*
+!.env.docker
+
+# Git
+*.orig
+
+# Migration tools
+migrations/
+
+# Temporary
 *.tmp
 *.bak
-vendor/
-coverage.out
-node_modules/
+*.swp

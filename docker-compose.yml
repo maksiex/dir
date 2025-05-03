@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: postgres-avia-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: psqlAvia
+      POSTGRES_DB: dir-avia
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dir-backend
+    depends_on:
+      - db
+    env_file:
+      - .env.docker
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:

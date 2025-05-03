@@ -34,7 +34,7 @@ var WarningStyles = lipgloss.NewStyle().
 	Border(lipgloss.NormalBorder()).
 	BorderForeground(lipgloss.Color("11"))
 
-var ELoadEnv = "Error loading .env file"
+var ELoadEnv = "Error loading .env.local file"
 var Start = "___START PROJECT___"
 var EAviaUrl = "Error loading AVIA_URL"
 var SRunning = "✅ Service running"
