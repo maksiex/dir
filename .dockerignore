@@ -1,0 +1,30 @@
+# system
+.git
+.vscode
+.idea
+node_modules
+
+# logs
+*.log
+
+# artfcts
+bin/
+build/
+dist/
+out/
+
+# temp
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# Go
+*.test
+*.exe
+*.out
+vendor/
+
+# env
+.env.local
+*.env
