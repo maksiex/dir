@@ -36,7 +36,8 @@ Thumbs.db
 .env.local
 .env.production
 .env.*
-!.env.docker
+.env.docker
+.env.docker.example
 
 # Git
 *.orig

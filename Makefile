@@ -4,30 +4,30 @@ APP_NAME=backv1
 run:
 	go run cmd/main.go
 
-# building with docker
-docker-build:
+# Build Docker image
+docker_build:
 	docker build -t ${APP_NAME} .
 
-# running with docker
-docker-run:
+# Run container
+docker_run:
 	docker run --rm -p 8080:8080 ${APP_NAME}
 
-# build and running
-docker-up:
-	docker-compose up --build
+# Build and run with docker-compose
+docker_up:
+	docker compose up --build -d
 
-# deleting docker image
-docker-clean:
+# Remove Docker image
+docker_clean:
 	docker rmi ${APP_NAME} || true
 
-# logs
+# Logs
 logs:
-	docker-compose logs -f backend
+	docker compose logs -f backend
 
-# stop containers
+# Stop containers
 stop:
-	docker-compose down
+	docker compose down
 
-# rebuild containers
+# Rebuild containers
 rebuild:
-	docker-compose up --build --force-recreate
+	docker compose up --build -d --force-recreate
