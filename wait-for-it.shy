@@ -12,7 +12,7 @@ until nc -z $host 2>/dev/null; do
 done
 
 echo "✅ $host is up. Starting application..."
-sleep 1 
+sleep 1  
 
 exec $cmd#!/usr/bin/env bash
 
