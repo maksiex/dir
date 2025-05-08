@@ -10,17 +10,26 @@ import (
 )
 
 type Db struct {
-	*gorm.DB
+	Gorm *gorm.DB
 }
 
 func DirDb(c *configs.Config) *Db {
 	db, err := gorm.Open(postgres.Open(c.Db.DSN), &gorm.Config{})
 	if err != nil {
 		logger.LoggerErrorCommon(constants.EDbConnection)
+		return nil
 	}
-	err = db.AutoMigrate(&models.Flight{})
+	err = db.AutoMigrate(
+		&models.NewsFromMediastack{},
+		&models.NewsFromCurrents{},
+		&models.NewsFromGnews{},
+		&models.NewsFromNewsapi{},
+	)
+
 	if err != nil {
 		logger.LoggerErrorCommon(constants.EDbMigration)
+		return nil
 	}
-	return &Db{db}
+
+	return &Db{Gorm: db}
 }
