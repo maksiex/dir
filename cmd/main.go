@@ -10,9 +10,13 @@ import (
 	dbpkg "github.com/maksiex/dir/pkg/db"
 	"github.com/maksiex/dir/pkg/models"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+	"io"
 	"log"
 	"net/http"
 	"os"
+	"strings"
+	"time"
 )
 
 func main() {
@@ -89,24 +93,38 @@ func fetchMediastackHandler(db *gorm.DB, apiKey string) http.HandlerFunc {
 		}
 		defer resp.Body.Close()
 
+		body, _ := io.ReadAll(resp.Body)
+		log.Println("Mediastack raw body:", string(body))
+
 		var result struct {
 			Data []models.NewsFromMediastack `json:"data"`
 		}
 
-		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		if err := json.Unmarshal(body, &result); err != nil {
 			http.Error(w, "Failed to decode Mediastack response", http.StatusInternalServerError)
 			log.Println("Mediastack decode error:", err)
 			return
 		}
 
+		log.Printf("Mediastack articles received: %d\n", len(result.Data))
+
 		for _, article := range result.Data {
-			if err := db.Create(&article).Error; err != nil {
+			err := db.Clauses(clause.OnConflict{
+				Columns:   []clause.Column{{Name: "url"}},
+				DoNothing: true,
+			}).Create(&article).Error
+
+			if err != nil {
 				log.Println("DB insert error (mediastack):", err)
+			} else {
+				log.Println("Saved article:", article.Title)
 			}
 		}
 
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("✅ Mediastack articles saved"))
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{
+			"message": "✅ Mediastack articles saved",
+		})
 	}
 }
 
@@ -123,7 +141,7 @@ func fetchCurrentsHandler(db *gorm.DB, apiKey string) http.HandlerFunc {
 		defer resp.Body.Close()
 
 		var result struct {
-			News []models.NewsFromCurrents `json:"news"`
+			News []models.RawCurrentsArticle `json:"news"`
 		}
 
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
@@ -132,8 +150,32 @@ func fetchCurrentsHandler(db *gorm.DB, apiKey string) http.HandlerFunc {
 			return
 		}
 
-		for _, article := range result.News {
-			if err := db.Create(&article).Error; err != nil {
+		layout := "2006-01-02 15:04:05 -0700"
+		for _, raw := range result.News {
+			publishedAt, err := time.Parse(layout, raw.Published)
+			if err != nil {
+				log.Println("Date parse error:", raw.Published, err)
+				continue
+			}
+
+			article := models.NewsFromCurrents{
+				ID:          raw.ID,
+				Title:       raw.Title,
+				Description: raw.Description,
+				URL:         raw.URL,
+				Author:      raw.Author,
+				Image:       raw.Image,
+				Language:    raw.Language,
+				Category:    strings.Join(raw.Category, ","),
+				PublishedAt: publishedAt,
+			}
+
+			err = db.Clauses(clause.OnConflict{
+				Columns:   []clause.Column{{Name: "id"}},
+				DoNothing: true,
+			}).Create(&article).Error
+
+			if err != nil {
 				log.Println("DB insert error (currents):", err)
 			}
 		}

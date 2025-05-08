@@ -1,17 +1,8 @@
 package models
 
 import (
-	"gorm.io/gorm"
 	"time"
 )
-
-type Flight struct {
-	gorm.Model
-	FlightNumber string
-	Departure    string
-	Arrival      string
-	Status       string
-}
 
 type NewsFromMediastack struct {
 	ID          uint      `gorm:"primaryKey" json:"-"`
@@ -47,7 +38,7 @@ type NewsFromCurrents struct {
 	Image       string    `json:"image"`
 	Language    string    `json:"language"`
 	Category    string    `json:"-"`
-	Published   time.Time `json:"published"`
+	PublishedAt time.Time `json:"published"`
 	CreatedAt   time.Time
 }
 
