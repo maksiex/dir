@@ -9,7 +9,7 @@ type NewsFromMediastack struct {
 	Author      *string   `json:"author"` // or null
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
-	URL         string    `json:"url"`
+	URL         string    `gorm:"unique" json:"url"`
 	Source      string    `json:"source"`
 	Image       *string   `json:"image"` // or null
 	Category    string    `json:"category"`
