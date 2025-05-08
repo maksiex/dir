@@ -45,6 +45,7 @@ func main() {
 	r.Get("/fetch/mediastack", fetchMediastackHandler(db, apiKeys["mediastack"]))
 	r.Get("/fetch/currents", fetchCurrentsHandler(db, apiKeys["currents"]))
 	r.Get("/fetch/newsapi", fetchNewsapiHandler(db, apiKeys["newsapi"]))
+	r.Get("/news", getAllNewsHandler(db))
 
 	log.Println("✅ API listening on :8080")
 	log.Fatal(http.ListenAndServe(":8080", r))
@@ -83,7 +84,7 @@ func fetchGnewsHandler(db *gorm.DB, apiKey string) http.HandlerFunc {
 
 func fetchMediastackHandler(db *gorm.DB, apiKey string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		url := fmt.Sprintf("http://api.mediastack.com/v1/news?access_key=%s&languages=en", apiKey)
+		url := fmt.Sprintf("https://api.mediastack.com/v1/news?access_key=%s", apiKey)
 
 		resp, err := http.Get(url)
 		if err != nil {
@@ -109,15 +110,20 @@ func fetchMediastackHandler(db *gorm.DB, apiKey string) http.HandlerFunc {
 		log.Printf("Mediastack articles received: %d\n", len(result.Data))
 
 		for _, article := range result.Data {
-			err := db.Clauses(clause.OnConflict{
-				Columns:   []clause.Column{{Name: "url"}},
-				DoNothing: true,
-			}).Create(&article).Error
+			log.Println("→ TITLE:", article.Title)
+			log.Println("→ URL:", article.URL)
+			log.Println("→ PUBLISHED_AT:", article.PublishedAt)
 
+			if article.PublishedAt.IsZero() {
+				log.Println("⚠️ SKIPPED: zero published_at")
+				continue
+			}
+
+			err := db.Create(&article).Error
 			if err != nil {
-				log.Println("DB insert error (mediastack):", err)
+				log.Println("❌ DB insert error:", err)
 			} else {
-				log.Println("Saved article:", article.Title)
+				log.Println("✅ Inserted:", article.Title)
 			}
 		}
 
@@ -215,5 +221,46 @@ func fetchNewsapiHandler(db *gorm.DB, apiKey string) http.HandlerFunc {
 
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("✅ NewsAPI articles saved"))
+	}
+}
+
+func getAllNewsHandler(db *gorm.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var mediastackNews []models.NewsFromMediastack
+		var currentsNews []models.NewsFromCurrents
+		var gnewsNews []models.NewsFromGnews
+		var newsapiNews []models.NewsFromNewsapi
+
+		// load tables data
+		if err := db.Find(&mediastackNews).Error; err != nil {
+			http.Error(w, "Failed to load mediastack news", http.StatusInternalServerError)
+			return
+		}
+
+		if err := db.Find(&currentsNews).Error; err != nil {
+			http.Error(w, "Failed to load currents news", http.StatusInternalServerError)
+			return
+		}
+
+		if err := db.Find(&gnewsNews).Error; err != nil {
+			http.Error(w, "Failed to load gnews news", http.StatusInternalServerError)
+			return
+		}
+
+		if err := db.Find(&newsapiNews).Error; err != nil {
+			http.Error(w, "Failed to load newsapi news", http.StatusInternalServerError)
+			return
+		}
+
+		// response
+		response := map[string]interface{}{
+			"mediastack": mediastackNews,
+			"currents":   currentsNews,
+			"gnews":      gnewsNews,
+			"newsapi":    newsapiNews,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
 	}
 }
